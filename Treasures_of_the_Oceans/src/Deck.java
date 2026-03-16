@@ -5,6 +5,7 @@ public class Deck {
     
     
     private LinkedList<Card> myDeck = new LinkedList<>(); 
+    
     public Deck(LinkedList <Card> d)
     {
         this.myDeck = d;

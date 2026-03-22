@@ -25,7 +25,7 @@ public abstract class Player{
     }
     public boolean hasCardsLeft()
     {
-        return this.myDeck.emptyDeck();
+        return !this.myDeck.emptyDeck();
     }
     public abstract String choosestat();
 }

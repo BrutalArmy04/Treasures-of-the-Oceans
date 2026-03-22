@@ -25,8 +25,19 @@ public class Card{
     {return id;}
 
     @Override
-    public String toString()
-    {
-        return this.getName() + ": ID:" + this.getId() + ", " + this.getSpeed() + ", " + this.getSize() + ", " + this.getDanger();
+    public String toString() {
+
+        String border = "+------------------------+";        
+        StringBuilder cardArt = new StringBuilder();
+        cardArt.append(border).append("\n");
+        cardArt.append(String.format("| %-22s |\n", this.getName()));
+        cardArt.append(String.format("| ID: %-18d |\n", this.getId()));
+        cardArt.append(border).append("\n");
+        cardArt.append(String.format("| Speed:  %-14d |\n", this.getSpeed()));
+        cardArt.append(String.format("| Size:   %-14d |\n", this.getSize()));
+        cardArt.append(String.format("| Danger: %-14d |\n", this.getDanger()));
+        cardArt.append(border);
+        
+        return cardArt.toString();
     }
 }

@@ -115,19 +115,31 @@ public class GameEngine {
                 promptNextRound(); 
             }
         }
+        System.out.println("\n==================================");
+        System.out.println("           Game Over!             ");
+        System.out.println("==================================");
+        
+        if (activePlayers.size() == 1) {
+            Player grandChampion = activePlayers.get(0);
+            System.out.println("The Winner is: " + grandChampion.getName() + "!");
+        } else {
+            System.out.println("Everyone was eliminated! It's a total draw!");
+        }
         
     }
 
     private void removeEliminated() {
+        Player currentTurnHolder = activePlayers.get(turnPlayerIndex);
         for (int i = activePlayers.size() - 1; i >= 0; i--) {
             if (!activePlayers.get(i).hasCardsLeft()) {
                 System.out.println(activePlayers.get(i).getName() + " has run out of cards and is eliminated!");
-                if (i == turnPlayerIndex) {
-                    turnPlayerIndex = 0; 
-                }
                 activePlayers.remove(i);
             }
         }
+        turnPlayerIndex = activePlayers.indexOf(currentTurnHolder);
+        if (turnPlayerIndex == -1) 
+            turnPlayerIndex = 0; 
+        
     }
 
     private void promptNextRound() {
@@ -189,7 +201,7 @@ public class GameEngine {
         if (winningPlayers.size() == 1) {
             Player winner = winningPlayers.get(0);
             System.out.println("*** " + winner.getName() + " wins the round! ***");
-            
+        
             winner.winCards(deck); 
             turnPlayerIndex = activePlayers.indexOf(winner); 
             

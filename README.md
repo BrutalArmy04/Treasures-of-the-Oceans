@@ -36,11 +36,11 @@ The game features three distinct AI bots, ranging from pure chaos to card-counti
 ### Compilation and Execution
 1. Open your terminal or command prompt.
 2. Navigate to the directory containing the `.java` files.
+3. Compile the code:
+   ```bash
+   javac *.java
 
 ### Run the main application:
 java App
 
 ### Built Using Java - Core game logic, Object-Oriented architecture, and probability math.
-3. Compile the code:
-   ```bash
-   javac *.java

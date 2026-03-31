@@ -23,4 +23,7 @@ public class Deck {
     {
         return myDeck.isEmpty();
     }
+    public int size() {
+        return myDeck.size();
+    }
 }

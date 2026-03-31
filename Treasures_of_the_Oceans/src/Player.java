@@ -28,4 +28,5 @@ public abstract class Player{
         return !this.myDeck.emptyDeck();
     }
     public abstract String choosestat();
+    public void observeTable(ArrayList<Card> tableCards) { }
 }

@@ -39,18 +39,50 @@ public class GameEngine {
             }
     }
 
+    public int getDeckSizeChoice(int maxCards, int numberOfPlayers) {
+        Scanner userInput = new Scanner(System.in); 
+        while (true) { 
+            try {
+                System.out.println("\nHow many cards do you want to play with? (" + 3 * numberOfPlayers + "-" + maxCards + ")");
+                int choice = userInput.nextInt();
+                if (choice >= 3 * numberOfPlayers && choice <= maxCards) {
+                    return choice;
+                } else {
+                    System.out.println("Invalid choice. Must be between " + 3 * numberOfPlayers + " and " + maxCards + ".");
+                }
+            } catch(Exception e) {
+                userInput.nextLine();
+            }
+        }
+    }
+
     public void setup() {
         int numberOfPlayers = getMenuChoice();
-        deck = DeckFactory.returnDeck();
-        Collections.shuffle(deck);
-        int cardsPerPlayer = deck.size() / numberOfPlayers;
-        ArrayList<LinkedList<Card>> tablePiles = new ArrayList<>();
+        
+        ArrayList<Card> masterDeck = DeckFactory.returnDeck();
+        Collections.shuffle(masterDeck);
+        
+        int requestedDeckSize = getDeckSizeChoice(masterDeck.size(), numberOfPlayers);
+        
+        deck = new ArrayList<>(masterDeck.subList(0, requestedDeckSize));
 
+        int cardsPerPlayer = deck.size() / numberOfPlayers;
+        int totalCardsDealt = cardsPerPlayer * numberOfPlayers; 
+
+        ArrayList<LinkedList<Card>> tablePiles = new ArrayList<>();
         for (int i = 0; i < numberOfPlayers; i++)
             tablePiles.add(new LinkedList<>());
 
-        for (int i = 0; i < (cardsPerPlayer * numberOfPlayers); i++) {
-            tablePiles.get(i % numberOfPlayers).add(deck.get(i));
+        int totalSpeed = 0, totalSize = 0, totalDanger = 0;
+
+        for (int i = 0; i < totalCardsDealt; i++) {
+            Card currentCard = deck.get(i);
+            
+            tablePiles.get(i % numberOfPlayers).add(currentCard);
+            
+            totalSpeed += currentCard.getSpeed();
+            totalSize += currentCard.getSize();
+            totalDanger += currentCard.getDanger();
         }
 
         Scanner setupScanner = new Scanner(System.in);
@@ -92,10 +124,10 @@ public class GameEngine {
                     activePlayers.add(new EasyBot(name, assignedDeck));
                     break;
                 case 3:
-                    activePlayers.add(new MediumBot(name, assignedDeck));
+                    activePlayers.add(new MediumBot(name, assignedDeck, numberOfPlayers, totalSpeed, totalSize, totalDanger));
                     break;
                 case 4:
-                    activePlayers.add(new HardBot(name, assignedDeck));
+                    activePlayers.add(new HardBot(name, assignedDeck, numberOfPlayers, totalSpeed, totalSize, totalDanger, assignedDeck.size() * numberOfPlayers));
                     break;
             }
         }
@@ -199,9 +231,12 @@ public class GameEngine {
         }
 
         if (winningPlayers.size() == 1) {
+            for (Player player : activePlayers)
+                player.observeTable(deck);
             Player winner = winningPlayers.get(0);
             System.out.println("*** " + winner.getName() + " wins the round! ***");
-        
+            
+            
             winner.winCards(deck); 
             turnPlayerIndex = activePlayers.indexOf(winner); 
             

@@ -1,0 +1,4 @@
+*.class
+SimApp.java
+SimulationEngine.java
+target/

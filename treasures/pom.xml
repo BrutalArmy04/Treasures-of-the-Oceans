@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- The parent: inherit Spring Boot's curated dependency versions and build defaults.
+         This is why the dependencies below carry no <version> tags — the parent picks them. -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.0</version>
+        <relativePath/> <!-- resolve the parent from Maven Central, not a local folder -->
+    </parent>
+
+    <!-- Your project's own coordinates. If your current pom already uses different
+         values here, keep yours — only the parent/dependencies/plugin below matter. -->
+    <groupId>com.oceans</groupId>
+    <artifactId>treasures-of-the-oceans</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>treasures-of-the-oceans</name>
+    <description>Treasures of the Oceans card game</description>
+
+    <properties>
+        <!-- Compile for Java 21. This also clears the "source/target 17" and
+             "platform encoding" warnings you saw. -->
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Spring MVC + embedded Tomcat: everything needed to serve the REST API. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Test support (JUnit etc). Optional, but standard and harmless to keep.
+             Note: EngineSmokeTest has a main() but no @Test, so `mvn test` ignores it. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Enables `mvn spring-boot:run` and packaging an executable jar. -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

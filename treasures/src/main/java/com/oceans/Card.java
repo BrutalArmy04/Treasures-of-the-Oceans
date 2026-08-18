@@ -3,16 +3,19 @@ package com.oceans;
 public class Card{
     private String name;
     private int id, speed, size, danger;
+    private String imagePath, description, attribution;
 
-    private static int idCounter = 0 ;
-
-    public Card(String name, int speed, int size, int danger)
+    public Card(int id, String name, int speed, int size, int danger,
+                String imagePath, String description, String attribution)
     {
-        this.id = idCounter++;
+        this.id = id;
         this.speed = speed;
         this.size = size;
         this.danger = danger;
         this.name = name;
+        this.imagePath = imagePath;
+        this.description = description;
+        this.attribution = attribution;
     }
 
     public String getName()
@@ -25,11 +28,17 @@ public class Card{
     {return this.danger;}
     public int getId()
     {return id;}
+    public String getImagePath()
+    {return this.imagePath;}
+    public String getDescription()
+    {return this.description;}
+    public String getAttribution()
+    {return this.attribution;}
 
     @Override
     public String toString() {
 
-        String border = "+------------------------+";        
+        String border = "+------------------------+";
         StringBuilder cardArt = new StringBuilder();
         cardArt.append(border).append("\n");
         cardArt.append(String.format("| %-22s |\n", this.getName()));
@@ -39,7 +48,7 @@ public class Card{
         cardArt.append(String.format("| Size:   %-14d |\n", this.getSize()));
         cardArt.append(String.format("| Danger: %-14d |\n", this.getDanger()));
         cardArt.append(border);
-        
+
         return cardArt.toString();
     }
 }

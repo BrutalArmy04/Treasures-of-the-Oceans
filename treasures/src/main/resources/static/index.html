@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Treasures of the Oceans</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <h1>Treasures <span>of the</span> Oceans</h1>
+  <p class="tagline">Top trumps from the deep</p>
+</header>
+
+<!-- Error strip: every failed fetch surfaces its ApiError.message here rather than the console. -->
+<div id="error-strip" class="error-strip" role="alert" hidden>
+  <span id="error-text"></span>
+  <button type="button" id="error-dismiss" class="error-dismiss" aria-label="Dismiss">&times;</button>
+</div>
+
+<main>
+
+  <!-- ============================ SETUP ============================ -->
+  <section id="setup" class="panel">
+    <h2>New game</h2>
+
+    <div class="field">
+      <label for="player-count">Players</label>
+      <select id="player-count">
+        <option value="2">2</option>
+        <option value="3" selected>3</option>
+        <option value="4">4</option>
+      </select>
+    </div>
+
+    <div id="seats" class="seats"></div>
+
+    <div class="field">
+      <label for="deck-size">Deck size</label>
+      <input type="number" id="deck-size" value="30" min="3" max="60" step="1">
+      <p class="helper" id="deck-help"></p>
+    </div>
+
+    <button type="button" id="start-btn" class="primary">Start game</button>
+  </section>
+
+  <!-- ============================ TABLE ============================ -->
+  <section id="table-screen" class="panel" hidden>
+
+    <div id="turn-banner" class="turn-banner" aria-live="polite"></div>
+
+    <div id="round-note" class="round-note" aria-live="polite"></div>
+
+    <div id="table-cards" class="table-cards"></div>
+
+    <!-- Only rendered at AWAITING_PLAYER_CHOICE, where the engine reveals the human's own top card. -->
+    <div id="choice-area" class="choice-area" hidden>
+      <div class="choice-card-wrap">
+        <p class="choice-label">Your card</p>
+        <div id="your-card"></div>
+      </div>
+      <div class="choice-buttons">
+        <p class="choice-label">Pick a stat to play</p>
+        <div class="stat-buttons">
+          <button type="button" class="stat-btn" data-stat="Speed">Speed</button>
+          <button type="button" class="stat-btn" data-stat="Size">Size</button>
+          <button type="button" class="stat-btn" data-stat="Danger">Danger</button>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="roster-heading">Players</h3>
+    <ul id="roster" class="roster"></ul>
+
+  </section>
+
+</main>
+
+<!-- ========================== GAME OVER ========================== -->
+<div id="gameover" class="overlay" hidden>
+  <div class="overlay-box">
+    <p class="overlay-kicker">Game over</p>
+    <h2 id="winner-line"></h2>
+    <button type="button" id="new-game-btn" class="primary">New game</button>
+  </div>
+</div>
+
+<script src="/app.js" defer></script>
+</body>
+</html>

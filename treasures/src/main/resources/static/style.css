@@ -1,0 +1,468 @@
+/* Treasures of the Oceans - deep water palette.
+   One accent (warm gold) is reserved exclusively for the winning card, so the eye
+   goes straight to the result of a round without reading any text. */
+
+:root {
+  --abyss:        #04141f;
+  --deep:         #072a3d;
+  --deep-2:       #0a3a52;
+  --teal:         #12798f;
+  --teal-bright:  #2fb6c4;
+  --foam:         #d6eef4;
+  --ink:          #0b2230;
+  --card-face:    #f4fafc;
+  --card-edge:    #b9d7e0;
+  --accent:       #ffc857;
+  --accent-deep:  #c98f14;
+  --danger:       #ff6b6b;
+  --muted:        #8fb3c2;
+
+  --radius:  14px;
+  --shadow:  0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 1rem 4rem;
+  min-height: 100vh;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--foam);
+  background:
+    radial-gradient(1200px 600px at 50% -200px, var(--teal) 0%, transparent 60%),
+    linear-gradient(180deg, var(--deep) 0%, var(--abyss) 70%);
+  background-attachment: fixed;
+}
+
+/* ------------------------------------------------------------- masthead */
+
+.masthead {
+  text-align: center;
+  padding: 2rem 0 1.25rem;
+}
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foam);
+  text-shadow: 0 2px 14px rgba(47, 182, 196, 0.45);
+}
+
+.masthead h1 span {
+  color: var(--teal-bright);
+  font-weight: 300;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+.tagline {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+main { max-width: 940px; margin: 0 auto; }
+
+/* ---------------------------------------------------------- error strip */
+
+.error-strip {
+  max-width: 940px;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  background: rgba(255, 107, 107, 0.14);
+  border: 1px solid var(--danger);
+  color: #ffdede;
+}
+
+.error-strip[hidden] { display: none; }
+
+.error-dismiss {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #ffdede;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------------------- panel */
+
+.panel {
+  background: rgba(7, 42, 61, 0.62);
+  border: 1px solid rgba(47, 182, 196, 0.22);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(3px);
+}
+
+.panel[hidden] { display: none; }
+
+.panel h2 {
+  margin: 0 0 1.2rem;
+  font-size: 1.15rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teal-bright);
+}
+
+/* ---------------------------------------------------------------- setup */
+
+.field { margin-bottom: 1.1rem; }
+
+.field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+select, input[type="text"], input[type="number"] {
+  font: inherit;
+  color: var(--ink);
+  background: var(--foam);
+  border: 1px solid var(--card-edge);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+}
+
+select:focus-visible,
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.helper {
+  margin: 0.4rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.seats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+}
+
+.seat {
+  display: grid;
+  grid-template-columns: 5.5rem 9.5rem 1fr;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.seat-index {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+button.primary {
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-deep) 100%);
+  border: none;
+  border-radius: 10px;
+  padding: 0.7rem 1.6rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+button.primary:hover:not(:disabled) { filter: brightness(1.08); }
+button.primary:disabled { opacity: 0.55; cursor: default; }
+
+/* ---------------------------------------------------------------- table */
+
+.turn-banner {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--foam);
+  margin-bottom: 0.25rem;
+  min-height: 1.6rem;
+}
+
+.round-note {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  min-height: 1.2rem;
+}
+
+.table-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.table-slot { transition: opacity 0.25s ease; }
+.table-slot.is-out { opacity: 0.32; filter: grayscale(0.7); }
+
+/* ----------------------------------------------------------------- card */
+
+.card {
+  width: 168px;
+  aspect-ratio: 5 / 7;      /* fixed shape: adding artwork later must not reflow */
+  display: flex;
+  flex-direction: column;
+  background: var(--card-face);
+  color: var(--ink);
+  border: 1px solid var(--card-edge);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-title {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--foam);
+  background: linear-gradient(180deg, var(--deep-2) 0%, var(--deep) 100%);
+  min-height: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Reserved slot for the future Card.imagePath artwork. Sized by flex, so dropping an
+   image element in here changes nothing about the surrounding layout. */
+.card-media {
+  flex: 1 1 auto;
+  min-height: 0;
+  background:
+    radial-gradient(circle at 50% 120%, rgba(47, 182, 196, 0.35) 0%, transparent 70%),
+    repeating-linear-gradient(180deg, #dceef4 0 8px, #d2e8f0 8px 16px);
+  border-bottom: 1px solid var(--card-edge);
+}
+
+.card-media--back {
+  background:
+    repeating-linear-gradient(45deg, var(--deep) 0 10px, var(--deep-2) 10px 20px);
+}
+
+.card-stats {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.5rem 0.4rem;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.14rem 0.3rem;
+  border-radius: 5px;
+  font-size: 0.82rem;
+}
+
+.stat-key { color: #4a6a7a; }
+
+.stat-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: right;
+}
+
+.stat-row.is-played {
+  background: rgba(18, 121, 143, 0.16);
+  box-shadow: inset 2px 0 0 var(--teal);
+}
+
+.card-owner {
+  flex: 0 0 auto;
+  padding: 0.28rem 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--foam);
+  background: rgba(4, 20, 31, 0.85);
+}
+
+/* the one accent in the whole page */
+.card.is-winner {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent), 0 12px 26px rgba(0, 0, 0, 0.45);
+  transform: translateY(-6px);
+}
+
+.card.is-winner .card-owner {
+  background: var(--accent);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------- choices */
+
+.choice-area {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius);
+  background: rgba(4, 20, 31, 0.45);
+  border: 1px solid rgba(255, 200, 87, 0.35);
+}
+
+.choice-area[hidden] { display: none; }
+
+.choice-card-wrap { text-align: center; }
+
+.choice-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.stat-buttons { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.stat-btn {
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  min-width: 11rem;
+  padding: 0.7rem 1.2rem;
+  color: var(--foam);
+  background: linear-gradient(180deg, var(--teal) 0%, var(--deep-2) 100%);
+  border: 1px solid var(--teal-bright);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.stat-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, var(--teal-bright) 0%, var(--teal) 100%);
+}
+
+.stat-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* ---------------------------------------------------------------- roster */
+
+.roster-heading {
+  margin: 0 0 0.6rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.roster { list-style: none; margin: 0; padding: 0; }
+
+.roster-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border-left: 3px solid transparent;
+  background: rgba(4, 20, 31, 0.35);
+  margin-bottom: 0.35rem;
+}
+
+.roster-row.is-turn {
+  border-left-color: var(--accent);
+  background: rgba(255, 200, 87, 0.1);
+}
+
+.roster-row.is-eliminated {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.roster-name { font-weight: 600; }
+
+.roster-kind {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--muted);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+
+.roster-cards {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: var(--muted);
+  min-width: 6rem;
+  text-align: right;
+}
+
+/* -------------------------------------------------------------- overlay */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 20, 31, 0.82);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.overlay[hidden] { display: none; }
+
+.overlay-box {
+  text-align: center;
+  padding: 2.5rem 3rem;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--deep-2) 0%, var(--deep) 100%);
+  border: 1px solid var(--accent);
+  box-shadow: var(--shadow);
+}
+
+.overlay-kicker {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.overlay-box h2 {
+  margin: 0.5rem 0 1.5rem;
+  font-size: 1.8rem;
+  color: var(--accent);
+}
+
+/* --------------------------------------------------------------- narrow */
+
+@media (max-width: 560px) {
+  .seat { grid-template-columns: 1fr; }
+  .card { width: 132px; }
+  .choice-area { gap: 1.25rem; }
+}

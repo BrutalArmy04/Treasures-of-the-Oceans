@@ -42,6 +42,26 @@
       <p class="helper" id="deck-help"></p>
     </div>
 
+    <div class="field-row">
+      <div class="field">
+        <label for="bot-mode">Bot turns</label>
+        <select id="bot-mode">
+          <option value="manual" selected>Manual</option>
+          <option value="auto">Auto</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="bot-speed">Speed</label>
+        <select id="bot-speed">
+          <option value="slow">Slow</option>
+          <option value="normal" selected>Normal</option>
+          <option value="fast">Fast</option>
+        </select>
+      </div>
+    </div>
+    <p class="helper setup-helper">Manual steps one bot round per click. Auto plays them for you.
+       Either can be changed mid-game from the table.</p>
+
     <button type="button" id="start-btn" class="primary">Start game</button>
   </section>
 
@@ -57,13 +77,35 @@
     <!-- Only rendered at AWAITING_PLAYER_CHOICE. Blind play: the human picks a stat without
          seeing their own card - it is revealed on the table once the round resolves. -->
     <div id="choice-area" class="choice-area" hidden>
-      <div class="choice-buttons">
+
+      <div id="stat-choice" class="choice-buttons" hidden>
         <p class="choice-label">Pick a stat to play</p>
         <div class="stat-buttons">
           <button type="button" class="stat-btn" data-stat="Speed">Speed</button>
           <button type="button" class="stat-btn" data-stat="Size">Size</button>
           <button type="button" class="stat-btn" data-stat="Danger">Danger</button>
         </div>
+      </div>
+
+      <!-- Live bot controls, bound to the same botMode/botSpeed the setup screen seeded.
+           "Next round" appears only on a bot's turn in manual mode. -->
+      <div class="bot-controls">
+        <div class="bot-control">
+          <label for="table-bot-mode" class="choice-label">Bot turns</label>
+          <select id="table-bot-mode">
+            <option value="manual">Manual</option>
+            <option value="auto">Auto</option>
+          </select>
+        </div>
+        <div class="bot-control">
+          <label for="table-bot-speed" class="choice-label">Speed</label>
+          <select id="table-bot-speed">
+            <option value="slow">Slow</option>
+            <option value="normal">Normal</option>
+            <option value="fast">Fast</option>
+          </select>
+        </div>
+        <button type="button" id="next-round-btn" class="next-round" hidden>Next round</button>
       </div>
     </div>
 

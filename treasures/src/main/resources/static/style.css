@@ -151,6 +151,16 @@ button:focus-visible {
   color: var(--muted);
 }
 
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.field-row .field { margin-bottom: 0.4rem; }
+
+.setup-helper { margin-bottom: 1.2rem; }
+
 .seats {
   display: flex;
   flex-direction: column;
@@ -323,10 +333,10 @@ button.primary:disabled { opacity: 0.55; cursor: default; }
 
 .choice-area {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
+  gap: 1.1rem;
   padding: 1.25rem;
   margin-bottom: 1.5rem;
   border-radius: var(--radius);
@@ -348,7 +358,37 @@ button.primary:disabled { opacity: 0.55; cursor: default; }
 
 .stat-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
 
-.stat-btn {
+/* Live bot controls. Sits under the stat buttons when both are showing, and is the
+   only occupant of the strip on a bot's turn - hence the rule below collapses the
+   divider when it is alone. */
+.bot-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.9rem;
+  width: 100%;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(255, 200, 87, 0.18);
+}
+
+#stat-choice[hidden] + .bot-controls {
+  padding-top: 0;
+  border-top: none;
+}
+
+.bot-control { text-align: center; }
+
+.bot-control .choice-label { margin-bottom: 0.35rem; }
+
+.bot-control select {
+  padding: 0.4rem 0.55rem;
+  font-size: 0.9rem;
+}
+
+/* Next round shares the stat buttons' teal treatment - the gold accent stays reserved
+   for the winning card - but carries its own class so no JS sweep can reach it. */
+.stat-btn, .next-round {
   font: inherit;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -361,11 +401,17 @@ button.primary:disabled { opacity: 0.55; cursor: default; }
   cursor: pointer;
 }
 
-.stat-btn:hover:not(:disabled) {
+.stat-btn:hover:not(:disabled),
+.next-round:hover:not(:disabled) {
   background: linear-gradient(180deg, var(--teal-bright) 0%, var(--teal) 100%);
 }
 
-.stat-btn:disabled { opacity: 0.45; cursor: default; }
+.stat-btn:disabled,
+.next-round:disabled { opacity: 0.45; cursor: default; }
+
+/* Narrower than a stat button: it sits in a row, not a stack. Must follow the shared
+   rule above to win on source order. */
+.next-round { min-width: 9rem; }
 
 /* ---------------------------------------------------------------- roster */
 

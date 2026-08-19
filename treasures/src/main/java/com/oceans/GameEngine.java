@@ -197,9 +197,6 @@ public class GameEngine {
             pv.name = p.getName();
             pv.human = p.isHuman();
             pv.cardsRemaining = p.cardsRemaining();
-            if (status == GameStatus.AWAITING_PLAYER_CHOICE && i == turnPlayerIndex && p.isHuman()) {
-                pv.topCard = new RoundResult.Reveal(p.getName(), p.peekTopCard());
-            }
             view.players.add(pv);
         }
         return view;

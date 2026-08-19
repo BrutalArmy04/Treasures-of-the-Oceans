@@ -54,12 +54,9 @@
 
     <div id="table-cards" class="table-cards"></div>
 
-    <!-- Only rendered at AWAITING_PLAYER_CHOICE, where the engine reveals the human's own top card. -->
+    <!-- Only rendered at AWAITING_PLAYER_CHOICE. Blind play: the human picks a stat without
+         seeing their own card - it is revealed on the table once the round resolves. -->
     <div id="choice-area" class="choice-area" hidden>
-      <div class="choice-card-wrap">
-        <p class="choice-label">Your card</p>
-        <div id="your-card"></div>
-      </div>
       <div class="choice-buttons">
         <p class="choice-label">Pick a stat to play</p>
         <div class="stat-buttons">

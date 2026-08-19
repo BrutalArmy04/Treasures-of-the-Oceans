@@ -336,8 +336,6 @@ button.primary:disabled { opacity: 0.55; cursor: default; }
 
 .choice-area[hidden] { display: none; }
 
-.choice-card-wrap { text-align: center; }
-
 .choice-label {
   margin: 0 0 0.6rem;
   font-size: 0.78rem;
@@ -346,7 +344,9 @@ button.primary:disabled { opacity: 0.55; cursor: default; }
   color: var(--accent);
 }
 
-.stat-buttons { display: flex; flex-direction: column; gap: 0.6rem; }
+.choice-buttons { text-align: center; }
+
+.stat-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
 
 .stat-btn {
   font: inherit;
@@ -465,4 +465,5 @@ button.primary:disabled { opacity: 0.55; cursor: default; }
   .seat { grid-template-columns: 1fr; }
   .card { width: 132px; }
   .choice-area { gap: 1.25rem; }
+  .stat-buttons { flex-direction: column; }
 }

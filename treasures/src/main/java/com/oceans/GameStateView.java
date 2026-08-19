@@ -16,7 +16,5 @@ public class GameStateView {
         public String name;
         public boolean human;
         public int cardsRemaining;
-        // Only ever set for the human who is currently being asked to choose — their OWN top card.
-        public RoundResult.Reveal topCard;
     }
 }

@@ -14,7 +14,6 @@ public abstract class Player {
     public String getName() { return this.name; }
 
     public Card playCard() { return this.myDeck.dealCard(); }
-    public Card peekTopCard() { return this.myDeck.peekTop(); }
 
     public void winCards(ArrayList<Card> table) { this.myDeck.winCards(table); }
     public boolean hasCardsLeft() { return !this.myDeck.emptyDeck(); }

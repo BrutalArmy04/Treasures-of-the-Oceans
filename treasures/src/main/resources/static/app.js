@@ -274,13 +274,10 @@ function render() {
     table.appendChild(slot);
   }
 
-  /* stat buttons + the human's own card, strictly gated on status */
+  /* stat buttons, strictly gated on status - blind play: the human's own card is never
+     shown before the choice, it appears in lastRound.reveals once the round resolves */
   const choiceArea = $('choice-area');
   if (view.status === 'AWAITING_PLAYER_CHOICE') {
-    const me = view.players.find((p) => p.name === view.turnHolder);
-    const yourCard = $('your-card');
-    yourCard.innerHTML = '';
-    if (me && me.topCard) yourCard.appendChild(cardElement(me.topCard, { owner: me.name }));
     choiceArea.hidden = false;
     setStatButtons(true);
   } else {

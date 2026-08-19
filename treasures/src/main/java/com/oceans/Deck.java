@@ -13,10 +13,6 @@ public class Deck {
     public Card dealCard() {
         return myDeck.poll();
     }
-    // Look at the top card WITHOUT removing it (needed for the "your card" UI while a human chooses).
-    public Card peekTop() {
-        return myDeck.peek();
-    }
     public void winCards(ArrayList<Card> table) {
         myDeck.addAll(table);
     }

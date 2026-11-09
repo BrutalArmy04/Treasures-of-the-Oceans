@@ -21,7 +21,13 @@ ProgramId,
 myMatrixLocation,
 texture;
 
-glm::mat4 myMatrix;
+glm::mat4 myMatrix, resizeMatrix, scaleMatrix, flipMatrix;
+
+const float PI = 3.14159265f;
+const float FLIP_DURATION = 600.0f;
+float theta = 0.0f, thetaStart = 0.0f, thetaEnd = 0.0f;
+int flipStartTime = 0;
+bool faceUp = true, flipping = false;
 
 
 void LoadTexture(const char* texturePath)
@@ -112,12 +118,15 @@ void Initialize(void)
 	LoadTexture("card_0.png");
 	CreateShaders();
 	myMatrixLocation = glGetUniformLocation(ProgramId, "myMatrix");
-	myMatrix = glm::ortho(-400.0f, 400.0f, -400.0f, 400.0f);
+	resizeMatrix = glm::ortho(-400.0f, 400.0f, -400.0f, 400.0f);
+	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
 }
 void RenderFunction(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);       
 
+	flipMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cos(theta), 1.0f, 1.0f));
+	myMatrix = resizeMatrix * scaleMatrix * flipMatrix;
 	glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
 
 	glActiveTexture(GL_TEXTURE0);
@@ -127,6 +136,7 @@ void RenderFunction(void)
 	// Functiile de desenare
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+	glutSwapBuffers();
 	glFlush();
 }
 void Cleanup(void)
@@ -136,16 +146,46 @@ void Cleanup(void)
 	glDeleteTextures(1, &texture);
 }
 
+void ProcessNormalKeys(unsigned char key, int x, int y)
+{
+	if (key == 'f' && !flipping)
+	{
+		flipping = true;
+		flipStartTime = glutGet(GLUT_ELAPSED_TIME);
+		thetaStart = faceUp ? 0.0f : PI;
+		thetaEnd = faceUp ? PI : 0.0f;
+	}
+}
+
+void UpdateFlip(void)
+{
+	if (flipping)
+	{
+		float t = (glutGet(GLUT_ELAPSED_TIME) - flipStartTime) / FLIP_DURATION;
+		if (t >= 1.0f)
+		{
+			t = 1.0f;
+			flipping = false;
+			faceUp = !faceUp;
+		}
+		float s = t * t * (3.0f - 2.0f * t);
+		theta = thetaStart + (thetaEnd - thetaStart) * s;
+		glutPostRedisplay();
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowPosition(100, 100); // pozitia initiala a ferestrei
 	glutInitWindowSize(600, 600); //dimensiunile ferestrei
 	glutCreateWindow("Grafica pe calculator - primul exemplu"); // titlul ferestrei
 	glewInit(); // nu uitati de initializare glew; trebuie initializat inainte de a a initializa desenarea
 	Initialize();
 	glutDisplayFunc(RenderFunction);
+	glutIdleFunc(UpdateFlip);
+	glutKeyboardFunc(ProcessNormalKeys);
 	glutCloseFunc(Cleanup);
 	glutMainLoop();
 }

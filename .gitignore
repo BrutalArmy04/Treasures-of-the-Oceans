@@ -11,3 +11,5 @@ Graphics/OpenGL Template GLUT1/OpenGL Template GLUT1/x64/
 Graphics/OpenGL Template GLUT1/OpenGL Template GLUT1/card_*.png
 Graphics/OpenGL Template GLUT1/OpenGL Template GLUT1/layout.txt
 Graphics/OpenGL Template GLUT1/OpenGL Template GLUT1/fish_seed.csv
+Graphics/OpenGL Template GLUT1/OpenGL Template GLUT1/lib/x32/GLFW/*.lib
+Graphics/OpenGL Template GLUT1/OpenGL Template GLUT1/lib/x64/GLFW/*.lib

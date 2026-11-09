@@ -20,6 +20,9 @@ GLuint
 VaoId,
 VboId,
 EboId,
+BackgroundVaoId,
+BackgroundVboId,
+BackgroundProgramId,
 BannerVaoId,
 BannerVboId,
 BannerEboId,
@@ -52,6 +55,9 @@ const float PILE_X[2] = { 0.0f, 0.0f };
 const float PILE_Y[2] = { -300.0f, 300.0f };
 const float TABLE_X[2] = { -110.0f, 110.0f };
 const float TABLE_Y[2] = { 0.0f, 0.0f };
+const float WAR_OFFSET_X = 22.0f;
+const float WAR_OFFSET_Y = 22.0f;
+const float WAR_JITTER_ANGLE = 0.07f;
 const float BANNER_WIDTH = 560.0f;
 const float BANNER_HEIGHT = BANNER_WIDTH * 64.0f / 640.0f;
 const float BANNER_Y = -178.0f;
@@ -102,7 +108,10 @@ int deck[MAX_CARDS];
 int deckCount = 0;
 int hand[2][MAX_CARDS];
 int handCount[2] = { 0, 0 };
-int tableCard[2] = { -1, -1 };
+int tablePile[MAX_CARDS];
+int tablePileCount = 0;
+int topCard[2] = { -1, -1 };
+int warLevel = 0;
 
 Tween tweens[MAX_TWEENS];
 int tweenCount = 0;
@@ -113,6 +122,7 @@ int chosenStat = -1;
 int roundWinner = -1;
 int roundNumber = 0;
 int showStartTime = 0;
+int gameWinner = -1;
 
 
 float RandomRange(float a, float b)
@@ -292,15 +302,34 @@ void PrintPrompt(void)
 		printf("Alege botul: apasa SPACE\n");
 }
 
+bool IsOnTable(int id)
+{
+	for (int i = 0; i < tablePileCount; i++)
+		if (tablePile[i] == id)
+			return true;
+	return false;
+}
+
+bool IsInHand(int player, int id)
+{
+	for (int k = 0; k < handCount[player]; k++)
+		if (hand[player][k] == id)
+			return true;
+	return false;
+}
+
 void DealCards(void)
 {
 	handCount[HUMAN] = handCount[BOT] = 0;
-	tableCard[HUMAN] = tableCard[BOT] = -1;
+	tablePileCount = 0;
+	topCard[HUMAN] = topCard[BOT] = -1;
+	warLevel = 0;
 	tweenCount = 0;
 	chooser = HUMAN;
 	chosenStat = -1;
 	roundWinner = -1;
 	roundNumber = 0;
+	gameWinner = -1;
 
 	ShuffleDeck();
 	int total = 2 * CARDS_PER_PLAYER;
@@ -326,24 +355,65 @@ void DealCards(void)
 	printf("\n=== Joc nou: %d carti fiecare ===\n", CARDS_PER_PLAYER);
 }
 
+void EndGame(int winner)
+{
+	gameWinner = winner;
+	chosenStat = -1;
+	roundWinner = -1;
+	gameState = GAME_OVER;
+	if (winner == -1)
+		printf("=== Joc terminat: egalitate, nimeni nu mai are carti ===\n");
+	else
+		printf("=== Joc terminat: castiga %s cu toate cele %d carti ===\n", PLAYER_NAMES[winner], handCount[winner]);
+	printf("Apasa R pentru joc nou\n");
+}
+
+void PlaceCardsOnTable(void)
+{
+	for (int p = HUMAN; p <= BOT; p++)
+	{
+		topCard[p] = -1;
+		if (handCount[p] == 0)
+			continue;
+		int id = PopTop(p);
+		topCard[p] = id;
+		tablePile[tablePileCount++] = id;
+		float side = (p == HUMAN) ? -1.0f : 1.0f;
+		float angle = (warLevel == 0) ? 0.0f : RandomRange(-WAR_JITTER_ANGLE, WAR_JITTER_ANGLE);
+		CardState target = MakeState(TABLE_X[p] + side * warLevel * WAR_OFFSET_X,
+			TABLE_Y[p] + warLevel * WAR_OFFSET_Y, angle, TABLE_SCALE, PI);
+		AddTween(id, cards[id].state, target, MOVE_DURATION, 0.0f, false);
+	}
+	gameState = PLAYING;
+}
+
 void PlayRound(int stat)
 {
 	chosenStat = stat;
 	roundNumber++;
-	for (int p = HUMAN; p <= BOT; p++)
+	warLevel = 0;
+	tablePileCount = 0;
+	PlaceCardsOnTable();
+}
+
+void PlayWar(void)
+{
+	warLevel++;
+	if (handCount[HUMAN] == 0 && handCount[BOT] == 0)
 	{
-		int id = PopTop(p);
-		tableCard[p] = id;
-		AddTween(id, cards[id].state, MakeState(TABLE_X[p], TABLE_Y[p], 0.0f, TABLE_SCALE, PI), MOVE_DURATION, 0.0f, false);
+		EndGame(-1);
+		return;
 	}
-	gameState = PLAYING;
+	PlaceCardsOnTable();
 }
 
 void RevealCards(void)
 {
 	for (int p = HUMAN; p <= BOT; p++)
 	{
-		int id = tableCard[p];
+		int id = topCard[p];
+		if (id == -1)
+			continue;
 		CardState faceUp = cards[id].state;
 		faceUp.theta = 0.0f;
 		AddTween(id, cards[id].state, faceUp, FLIP_DURATION, 0.0f, false);
@@ -351,28 +421,45 @@ void RevealCards(void)
 	gameState = REVEALING;
 }
 
+void PrintPlayedCard(int player)
+{
+	if (topCard[player] == -1)
+		printf("%s: fara carti", PLAYER_NAMES[player]);
+	else
+		printf("%s: %s (%d)", PLAYER_NAMES[player], cards[topCard[player]].name, StatValue(topCard[player], chosenStat));
+}
+
 void ResolveRound(void)
 {
-	int humanValue = StatValue(tableCard[HUMAN], chosenStat);
-	int botValue = StatValue(tableCard[BOT], chosenStat);
-	if (humanValue > botValue)
-		roundWinner = HUMAN;
-	else if (botValue > humanValue)
+	if (topCard[HUMAN] == -1)
 		roundWinner = BOT;
+	else if (topCard[BOT] == -1)
+		roundWinner = HUMAN;
 	else
-		roundWinner = -1;
+	{
+		int humanValue = StatValue(topCard[HUMAN], chosenStat);
+		int botValue = StatValue(topCard[BOT], chosenStat);
+		if (humanValue > botValue)
+			roundWinner = HUMAN;
+		else if (botValue > humanValue)
+			roundWinner = BOT;
+		else
+			roundWinner = -1;
+	}
 
-	int humanAfter = handCount[HUMAN] + (roundWinner == HUMAN ? 2 : (roundWinner == -1 ? 1 : 0));
-	int botAfter = handCount[BOT] + (roundWinner == BOT ? 2 : (roundWinner == -1 ? 1 : 0));
-
-	printf("Runda %d: a ales %s, stat %s | Tu: %s (%d) vs Botul: %s (%d) | ",
-		roundNumber, PLAYER_NAMES[chooser], STAT_NAMES[chosenStat],
-		cards[tableCard[HUMAN]].name, humanValue, cards[tableCard[BOT]].name, botValue);
+	if (warLevel == 0)
+		printf("Runda %d: a ales %s, stat %s | ", roundNumber, PLAYER_NAMES[chooser], STAT_NAMES[chosenStat]);
+	else
+		printf("  Razboi %d, acelasi stat %s | ", warLevel, STAT_NAMES[chosenStat]);
+	PrintPlayedCard(HUMAN);
+	printf(" vs ");
+	PrintPlayedCard(BOT);
 	if (roundWinner == -1)
-		printf("egalitate, fiecare isi ia cartea inapoi");
+		printf(" | egalitate: razboi! pe masa sunt %d carti\n", tablePileCount);
 	else
-		printf("castiga %s", PLAYER_NAMES[roundWinner]);
-	printf(" | carti: Tu %d, Botul %d\n", humanAfter, botAfter);
+		printf(" | castiga %s si ia %d carti | carti: Tu %d, Botul %d\n", PLAYER_NAMES[roundWinner], tablePileCount,
+			handCount[HUMAN] + (roundWinner == HUMAN ? tablePileCount : 0),
+			handCount[BOT] + (roundWinner == BOT ? tablePileCount : 0));
 
 	showStartTime = glutGet(GLUT_ELAPSED_TIME);
 	gameState = SHOWING;
@@ -380,32 +467,32 @@ void ResolveRound(void)
 
 void CollectCards(void)
 {
-	for (int p = HUMAN; p <= BOT; p++)
+	for (int i = tablePileCount - 1; i >= 0; i--)
 	{
-		int id = tableCard[p];
-		int owner = (roundWinner == -1) ? p : roundWinner;
+		int id = tablePile[i];
 		CardState onTable = cards[id].state;
 		CardState faceDown = onTable;
 		faceDown.theta = PI;
 		AddTween(id, onTable, faceDown, FLIP_DURATION, 0.0f, true);
-		AddTween(id, faceDown, PileState(owner), MOVE_DURATION, FLIP_DURATION + p * DEAL_GAP, true);
-		PushBottom(owner, id);
+		AddTween(id, faceDown, PileState(roundWinner), MOVE_DURATION, FLIP_DURATION + i * DEAL_GAP, true);
 	}
+	for (int i = 0; i < tablePileCount; i++)
+		PushBottom(roundWinner, tablePile[i]);
 	gameState = COLLECTING;
 }
 
 void FinishCollecting(void)
 {
-	tableCard[HUMAN] = tableCard[BOT] = -1;
+	tablePileCount = 0;
+	topCard[HUMAN] = topCard[BOT] = -1;
+	warLevel = 0;
 	chosenStat = -1;
-	if (roundWinner != -1)
-		chooser = roundWinner;
+	chooser = roundWinner;
 	roundWinner = -1;
 
 	if (handCount[HUMAN] == 0 || handCount[BOT] == 0)
 	{
-		gameState = GAME_OVER;
-		printf("=== Joc terminat: castiga %s ===\n", handCount[HUMAN] > 0 ? PLAYER_NAMES[HUMAN] : PLAYER_NAMES[BOT]);
+		EndGame(handCount[HUMAN] > 0 ? HUMAN : BOT);
 		return;
 	}
 	gameState = AWAITING_CHOICE;
@@ -452,7 +539,10 @@ void UpdateAnimations(void)
 	}
 	else if (gameState == SHOWING && now - showStartTime >= SHOW_DURATION)
 	{
-		CollectCards();
+		if (roundWinner == -1)
+			PlayWar();
+		else
+			CollectCards();
 		glutPostRedisplay();
 	}
 }
@@ -508,6 +598,41 @@ void DestroyVBO(void)
 	glDeleteVertexArrays(1, &VaoId);
 }
 
+void CreateBackgroundVBO(void)
+{
+	GLfloat Vertices[] = {
+		-1.0f, -1.0f, 0.0f, 1.0f,   0.016f, 0.078f, 0.122f, 1.0f,
+		 1.0f, -1.0f, 0.0f, 1.0f,   0.016f, 0.078f, 0.122f, 1.0f,
+		-1.0f,  1.0f, 0.0f, 1.0f,   0.027f, 0.165f, 0.239f, 1.0f,
+		 1.0f,  1.0f, 0.0f, 1.0f,   0.027f, 0.165f, 0.239f, 1.0f
+	};
+
+	glGenVertexArrays(1, &BackgroundVaoId);
+	glBindVertexArray(BackgroundVaoId);
+
+	glGenBuffers(1, &BackgroundVboId);
+	glBindBuffer(GL_ARRAY_BUFFER, BackgroundVboId);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(4 * sizeof(GLfloat)));
+}
+void DestroyBackgroundVBO(void)
+{
+	glBindVertexArray(BackgroundVaoId);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDeleteBuffers(1, &BackgroundVboId);
+
+	glBindVertexArray(0);
+	glDeleteVertexArrays(1, &BackgroundVaoId);
+}
+
 void CreateBannerVBO(void)
 {
 	float w = BANNER_WIDTH / 2.0f, h = BANNER_HEIGHT / 2.0f;
@@ -556,12 +681,14 @@ void DestroyBannerVBO(void)
 
 void CreateShaders(void)
 {
+	BackgroundProgramId = LoadShaders("example.vert", "example.frag");
 	ProgramId = LoadShaders("card.vert", "card.frag");
 	glUseProgram(ProgramId);
 }
 void DestroyShaders(void)
 {
 	glDeleteProgram(ProgramId);
+	glDeleteProgram(BackgroundProgramId);
 }
 
 void Initialize(void)
@@ -569,6 +696,7 @@ void Initialize(void)
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // culoarea de fond a ecranului
 	srand((unsigned int)time(NULL));
 	CreateVBO();
+	CreateBackgroundVBO();
 	CreateBannerVBO();
 	ReadCardsCsv("fish_seed.csv");
 	LoadCardTextures();
@@ -592,9 +720,11 @@ void DrawCard(int id)
 	myMatrix = resizeMatrix * translateMatrix * rotateMatrix * scaleMatrix * flipMatrix;
 	glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
 
-	bool onTable = (id == tableCard[HUMAN] || id == tableCard[BOT]);
+	bool onTable = IsOnTable(id);
+	bool roundWinnerCard = gameState == SHOWING && roundWinner != -1 && id == topCard[roundWinner];
+	bool gameWinnerCard = gameState == GAME_OVER && gameWinner != -1 && IsInHand(gameWinner, id);
 	glUniform1i(highlightRowLocation, onTable ? chosenStat : -1);
-	glUniform1i(winnerLocation, onTable && roundWinner != -1 && id == tableCard[roundWinner]);
+	glUniform1i(winnerLocation, roundWinnerCard || gameWinnerCard);
 
 	glBindTexture(GL_TEXTURE_2D, textures[id]);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -625,9 +755,10 @@ void DrawScene(void)
 			if (!moving[hand[p][k]])
 				DrawCard(hand[p][k]);
 
-	for (int p = HUMAN; p <= BOT; p++)
-		if (tableCard[p] != -1 && !moving[tableCard[p]])
-			DrawCard(tableCard[p]);
+	if (gameState != COLLECTING)
+		for (int i = 0; i < tablePileCount; i++)
+			if (!moving[tablePile[i]])
+				DrawCard(tablePile[i]);
 
 	DrawMovingCards(false, drawn);
 }
@@ -636,8 +767,14 @@ int CurrentBanner(void)
 {
 	if (gameState == AWAITING_CHOICE && !IsAnimating())
 		return chooser == HUMAN ? BANNER_YOUR_TURN : BANNER_BOT_TURN;
-	if (gameState == SHOWING && roundWinner != -1)
+	if (gameState == SHOWING)
+	{
+		if (roundWinner == -1)
+			return BANNER_WAR;
 		return roundWinner == HUMAN ? BANNER_ROUND_YOU : BANNER_ROUND_BOT;
+	}
+	if (gameState == GAME_OVER && gameWinner != -1)
+		return gameWinner == HUMAN ? BANNER_GAME_YOU : BANNER_GAME_BOT;
 	return -1;
 }
 
@@ -657,6 +794,14 @@ void DrawBanner(void)
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
+void DrawBackground(void)
+{
+	glUseProgram(BackgroundProgramId);
+	glBindVertexArray(BackgroundVaoId);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glUseProgram(ProgramId);
+}
+
 void RenderFunction(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -665,6 +810,7 @@ void RenderFunction(void)
 	glUniform1i(textureLocation, 0);
 
 	// Functiile de desenare
+	DrawBackground();
 	glBindVertexArray(VaoId);
 	DrawScene();
 	DrawBanner();
@@ -676,6 +822,7 @@ void Cleanup(void)
 {
 	DestroyShaders();
 	DestroyBannerVBO();
+	DestroyBackgroundVBO();
 	DestroyVBO();
 	for (int id = 0; id < MAX_CARDS; id++)
 		if (cardExists[id])
@@ -685,7 +832,14 @@ void Cleanup(void)
 
 void ProcessNormalKeys(unsigned char key, int x, int y)
 {
-	if (IsAnimating() || gameState != AWAITING_CHOICE)
+	if (IsAnimating())
+		return;
+	if (key == 'r' || key == 'R')
+	{
+		DealCards();
+		return;
+	}
+	if (gameState != AWAITING_CHOICE)
 		return;
 	if (chooser == HUMAN && key >= '1' && key <= '3')
 		PlayRound(key - '1');

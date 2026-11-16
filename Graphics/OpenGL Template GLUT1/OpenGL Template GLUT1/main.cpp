@@ -43,6 +43,7 @@ const int BOT = 1;
 
 const float FLIP_DURATION = 600.0f;
 const float MOVE_DURATION = 550.0f;
+const float SCALE_DURATION = 600.0f;
 const float DEAL_GAP = 160.0f;
 const int SHOW_DURATION = 1500;
 
@@ -61,6 +62,9 @@ const float WAR_JITTER_ANGLE = 0.07f;
 const float BANNER_WIDTH = 560.0f;
 const float BANNER_HEIGHT = BANNER_WIDTH * 64.0f / 640.0f;
 const float BANNER_Y = -178.0f;
+const float BG_TOP[3] = { 0.420f, 0.769f, 0.722f };
+const float BG_MIDDLE[3] = { 0.643f, 0.784f, 0.635f };
+const float BG_BOTTOM[3] = { 0.851f, 0.729f, 0.510f };
 
 const char* STAT_NAMES[3] = { "Speed", "Size", "Danger" };
 const char* PLAYER_NAMES[2] = { "Tu", "Botul" };
@@ -96,7 +100,7 @@ const char* BANNER_FILES[BANNER_COUNT] = {
 	"banner_war.png", "banner_game_you.png", "banner_game_bot.png"
 };
 
-enum GameState { DEALING, AWAITING_CHOICE, PLAYING, REVEALING, SHOWING, COLLECTING, GAME_OVER };
+enum GameState { DEALING, AWAITING_CHOICE, PLAYING, REVEALING, GROWING, SHOWING, COLLECTING, GAME_OVER };
 
 Card cards[MAX_CARDS];
 bool cardExists[MAX_CARDS];
@@ -381,7 +385,7 @@ void PlaceCardsOnTable(void)
 		float side = (p == HUMAN) ? -1.0f : 1.0f;
 		float angle = (warLevel == 0) ? 0.0f : RandomRange(-WAR_JITTER_ANGLE, WAR_JITTER_ANGLE);
 		CardState target = MakeState(TABLE_X[p] + side * warLevel * WAR_OFFSET_X,
-			TABLE_Y[p] + warLevel * WAR_OFFSET_Y, angle, TABLE_SCALE, PI);
+			TABLE_Y[p] + warLevel * WAR_OFFSET_Y, angle, PILE_SCALE, PI);
 		AddTween(id, cards[id].state, target, MOVE_DURATION, 0.0f, false);
 	}
 	gameState = PLAYING;
@@ -419,6 +423,20 @@ void RevealCards(void)
 		AddTween(id, cards[id].state, faceUp, FLIP_DURATION, 0.0f, false);
 	}
 	gameState = REVEALING;
+}
+
+void GrowCards(void)
+{
+	for (int p = HUMAN; p <= BOT; p++)
+	{
+		int id = topCard[p];
+		if (id == -1)
+			continue;
+		CardState grown = cards[id].state;
+		grown.scale = TABLE_SCALE;
+		AddTween(id, cards[id].state, grown, SCALE_DURATION, 0.0f, false);
+	}
+	gameState = GROWING;
 }
 
 void PrintPlayedCard(int player)
@@ -471,10 +489,13 @@ void CollectCards(void)
 	{
 		int id = tablePile[i];
 		CardState onTable = cards[id].state;
-		CardState faceDown = onTable;
+		CardState shrunk = onTable;
+		shrunk.scale = PILE_SCALE;
+		CardState faceDown = shrunk;
 		faceDown.theta = PI;
-		AddTween(id, onTable, faceDown, FLIP_DURATION, 0.0f, true);
-		AddTween(id, faceDown, PileState(roundWinner), MOVE_DURATION, FLIP_DURATION + i * DEAL_GAP, true);
+		AddTween(id, onTable, shrunk, SCALE_DURATION, 0.0f, true);
+		AddTween(id, shrunk, faceDown, FLIP_DURATION, SCALE_DURATION, true);
+		AddTween(id, faceDown, PileState(roundWinner), MOVE_DURATION, SCALE_DURATION + FLIP_DURATION + i * DEAL_GAP, true);
 	}
 	for (int i = 0; i < tablePileCount; i++)
 		PushBottom(roundWinner, tablePile[i]);
@@ -511,6 +532,9 @@ void OnAnimationsFinished(void)
 		RevealCards();
 		break;
 	case REVEALING:
+		GrowCards();
+		break;
+	case GROWING:
 		ResolveRound();
 		break;
 	case COLLECTING:
@@ -601,10 +625,12 @@ void DestroyVBO(void)
 void CreateBackgroundVBO(void)
 {
 	GLfloat Vertices[] = {
-		-1.0f, -1.0f, 0.0f, 1.0f,   0.016f, 0.078f, 0.122f, 1.0f,
-		 1.0f, -1.0f, 0.0f, 1.0f,   0.016f, 0.078f, 0.122f, 1.0f,
-		-1.0f,  1.0f, 0.0f, 1.0f,   0.027f, 0.165f, 0.239f, 1.0f,
-		 1.0f,  1.0f, 0.0f, 1.0f,   0.027f, 0.165f, 0.239f, 1.0f
+		-1.0f, -1.0f, 0.0f, 1.0f,   BG_BOTTOM[0], BG_BOTTOM[1], BG_BOTTOM[2], 1.0f,
+		 1.0f, -1.0f, 0.0f, 1.0f,   BG_BOTTOM[0], BG_BOTTOM[1], BG_BOTTOM[2], 1.0f,
+		-1.0f,  0.0f, 0.0f, 1.0f,   BG_MIDDLE[0], BG_MIDDLE[1], BG_MIDDLE[2], 1.0f,
+		 1.0f,  0.0f, 0.0f, 1.0f,   BG_MIDDLE[0], BG_MIDDLE[1], BG_MIDDLE[2], 1.0f,
+		-1.0f,  1.0f, 0.0f, 1.0f,   BG_TOP[0], BG_TOP[1], BG_TOP[2], 1.0f,
+		 1.0f,  1.0f, 0.0f, 1.0f,   BG_TOP[0], BG_TOP[1], BG_TOP[2], 1.0f
 	};
 
 	glGenVertexArrays(1, &BackgroundVaoId);
@@ -693,7 +719,7 @@ void DestroyShaders(void)
 
 void Initialize(void)
 {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // culoarea de fond a ecranului
+	glClearColor(BG_MIDDLE[0], BG_MIDDLE[1], BG_MIDDLE[2], 1.0f); // culoarea de fond a ecranului
 	srand((unsigned int)time(NULL));
 	CreateVBO();
 	CreateBackgroundVBO();
@@ -798,7 +824,7 @@ void DrawBackground(void)
 {
 	glUseProgram(BackgroundProgramId);
 	glBindVertexArray(BackgroundVaoId);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
 	glUseProgram(ProgramId);
 }
 
